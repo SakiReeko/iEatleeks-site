@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>English Voicebanks | IEatLeeks's UTAU Distribution Centre</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Baloo 2', cursive, sans-serif;
+            background-image: url('english.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            color: #222;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            width: 100%;
+            background: rgba(255,255,255,0.85);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 12px 0;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .navbar a {
+            color: #4e4e4e;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 0 18px;
+            font-size: 1.1em;
+            transition: color 0.2s;
+        }
+        .navbar a:hover {
+            color: #ff6f91;
+        }
+        .language-sidebar {
+            position: fixed;
+            top: 140px;
+            left: 30px;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            align-items: center;
+        }
+        .flag-btn {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.15s;
+            min-width: 90px;
+            min-height: 90px;
+        }
+        .flag-btn:hover {
+            transform: scale(1.10);
+        }
+        .lang-label {
+            font-family: 'Baloo 2', cursive, sans-serif;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 10px;
+            font-size: 1.25em;
+            letter-spacing: 0.5px;
+        }
+        .flag-img {
+            width: 60px;
+            height: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(31,38,135,0.10);
+            border: 2px solid #fffd82;
+            object-fit: cover;
+        }
+        .container {
+            background: rgba(255,255,255,0.92);
+            max-width: 800px;
+            margin: 48px auto 32px auto;
+            padding: 36px 44px 32px 44px;
+            border-radius: 28px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+            border: 2px solid #fffd82;
+        }
+        h1 {
+            text-align: center;
+            color: #6fcf97;
+            font-size: 2.2em;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        h2 {
+            text-align: center;
+            color: #4e4e4e;
+            margin-bottom: 24px;
+            font-size: 1.3em;
+        }
+        .voicebank-list {
+            margin-top: 24px;
+            padding: 0;
+            list-style: none;
+        }
+        .voicebank-list li {
+            margin-bottom: 18px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        .voicebank-list li strong {
+            display: block;
+            font-size: 1.2em;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .voicebank-list li a {
+            color: #6fcf97;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+        .voicebank-list li a:hover {
+            color: #ff6f91;
+        }
+        .voicebank-list li p {
+            margin: 8px 0;
+            color: #555;
+            font-size: 0.9em;
+        }
+        .voicebank-list li audio {
+            width: 100%;
+            margin-top: 8px;
+        }
+        @media (max-width: 900px) {
+            .language-sidebar {
+                position: static;
+                flex-direction: row;
+                justify-content: center;
+                margin-bottom: 18px;
+                left: 0;
+                top: 0;
+            }
+        }
+        @media (max-width: 700px) {
+            .container {
+                padding: 18px 4vw 18px 4vw;
+            }
+            h1 { font-size: 1.5em; }
+            h2 { font-size: 1.1em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="index.html">Home</a>
+        <a href="voicebanks.html">Voicebanks</a>
+        <a href="about.html">About</a>
+        <a href="help.html">Contact</a>
+        <a href="minigame.html">Minigame</a>
+    </div>
+    <!-- Language Sidebar: Only Japanese and Chinese buttons here -->
+    <div class="language-sidebar">
+        <a href="japanese.html" class="flag-btn">
+            <img src="japanese-flag.png" alt="Japanese" class="flag-img">
+            <span class="lang-label">Japanese</span>
+        </a>
+        <a href="chinese.html" class="flag-btn">
+            <img src="china-flag.png" alt="Chinese" class="flag-img">
+            <span class="lang-label">Chinese</span>
+        </a>
+        <a href="lithuanian.html" class="flag-btn">
+            <img src="lithuania-flag.png" alt="Lithuanian" class="flag-img">
+            <span class="lang-label">Lithuanian</span>
+        </a>
+    </div>
+    <div class="container">
+        <h1>English Voicebanks</h1>
+        <h2>All UTAU voicebanks available in English</h2>
+        <ul class="voicebank-list">
+            <li>
+                <strong>Harashi Sukiya CV English</strong><br>
+                No downoad yet. Just wait a minute.</a>
+                <p data-i18n="harashi_eng_desc">Finished CV English bank for Harashi Sukiya. Simple, clear, and ready to use!</p>
+                <audio controls>
+                    <source src="HARASHIENGLISHSAMPLE.wav" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </li>
+            <li>
+                <strong>ZURYX VCCV English (unfinished)</strong><br>
+                <span style="color: #888;">Coming soon! (Or, you know, whenever I finish recording all those consonants...)</span>
+                <p data-i18n="zuryx_vccv_eng_desc">Unfinished VCCV English bank for ZURYX. Not ready for public use yet!</p>
+            </li>
+        </ul>
+        </p>
+        <p style="text-align:center; color:#888; font-size:1em;">
+            If you have questions or suggestions for English banks, feel free to <a href="help.html" style="color:#6fcf97;">contact me</a>.<br>
+            Thank you for your patience and support!
+        </p>
+    </div>
+</body>
+</html>

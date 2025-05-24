@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rhythm Game | IEatLeeks's UTAU Distribution Centre</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #fffbe6;
+            font-family: 'Baloo 2', cursive, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .game-container {
+            margin: 40px auto 0 auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(31,38,135,0.10);
+            padding: 32px 0 24px 0;
+            border: 2px solid #fffd82;
+            max-width: 420px;
+        }
+        #game-canvas {
+            background: #222;
+            display: block;
+            margin: 0 auto 18px auto;
+            border-radius: 10px;
+            touch-action: manipulation;
+        }
+        .instructions {
+            color: #6fcf97;
+            font-size: 1.1em;
+            margin-bottom: 18px;
+        }
+        .score {
+            color: #ff6f91;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .start-btn {
+            background: #fffd82;
+            color: #222;
+            font-weight: bold;
+            border: 2px solid #ff6f91;
+            border-radius: 8px;
+            padding: 10px 28px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-bottom: 18px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .start-btn:hover {
+            background: #ff6f91;
+            color: #fffbe6;
+        }
+        .diff-btn {
+            background: #fffd82;
+            color: #222;
+            font-weight: bold;
+            border: 2px solid #ff6f91;
+            border-radius: 8px;
+            padding: 8px 24px;
+            font-size: 1em;
+            margin: 0 6px 0 0;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border 0.2s;
+        }
+        .diff-btn.selected, .diff-btn:focus {
+            background: #ff6f91;
+            color: #fffbe6;
+            border: 2px solid #fffd82;
+        }
+        /* Rainbow gradient animation for Perfect! */
+        .rainbow-text {
+            background: linear-gradient(90deg, #ff6fcf, #6fcf97, #66b3ff, #ffe066, #ff6fcf 80%);
+            background-size: 400% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow-move 1.2s linear infinite;
+        }
+        @keyframes rainbow-move {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        /* Big combo display */
+        #big-combo {
+            position: fixed;
+            top: 50%;
+            right: 40px;
+            transform: translateY(-50%);
+            font-size: 5em;
+            font-weight: bold;
+            color: #ff6f91;
+            text-shadow: 4px 4px 16px #222, 0 0 32px #ffe066;
+            pointer-events: none;
+            z-index: 100;
+;            opacity: 1; /* Always visible */
+            transition: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="big-combo"></div>
+    <div class="game-container">
+        <h1 style="color:#ff6f91;">Rhythm Game</h1>
+        <div class="instructions">
+            Tap the note or press <b>Space</b> when it hits the yellow line!
+        </div>
+        <div class="score" id="score">Score: 0</div>
+        <div class="score" id="combo">Combo: 0</div>
+        <div id="difficulty-buttons" style="margin-bottom:18px;">
+            <button class="diff-btn selected" data-diff="easy">Easy</button>
+            <button class="diff-btn" data-diff="normal">Normal</button>
+            <button class="diff-btn" data-diff="hard">Hard</button>
+        </div>
+        <button class="start-btn" id="startBtn">Start</button>
+        <div id="feedback" style="height:40px;font-size:2em;font-weight:bold;color:#ffe066;text-shadow:2px 2px 8px #222;margin-bottom:10px;"></div>
+        <!-- Add health bar container -->
+        <div id="health-bar-container" style="width:120px;height:18px;background:#eee;border-radius:9px;overflow:hidden;position:relative;margin:0 auto 12px auto;">
+            <div id="health-bar" style="height:100%;width:100%;background:#6fcf97;transition:width 0.2s;"></div>
+            <span id="health-text" style="position:absolute;left:0;right:0;top:0;bottom:0;line-height:18px;font-size:0.9em;color:#222;font-weight:bold;">100%</span>
+        </div>
+        <canvas id="game-canvas" width="400" height="400"></canvas>
+        <audio id="song" src="cinderella zuryx.wav"></audio>
+    </div>
+    <script>
+        // Note charts for different difficulties (all in center lane)
+        const notesEasy = [
+            [1497], [4159], [6930], [9714], [12401], [15178], [18261], [23809], [27660], [29382], [31749], [34861], [37554], [40024], [40687], [42809], [43511], [45530], [46246], [48265], [48950], [50353], [52098], [53529], [54829], [56194], [57260], [60045], [62094], [63524], [64891], [66137], [70388], [73133], [75903], [77968], [78289], [79683], [81067], [83420], [83821], [85397], [88001], [91095], [93839], [96558], [99331], [101419], [102112], [104817], [107616], [110351], [113118], [113507], [114548], [114893], [115876], [116241], [117265], [117605], [118654], [119011], [120006], [120371], [121432], [121752], [122137], [122444], [122831], [123190], [123509], [124219], [126921], [129715], [132486], [133204], [133847], [134541], [137170], [137321]
+        ];
+        const notesNormal = [
+            [2156], [3505], [4884], [6266], [7626], [9011], [10378], [11780], [13104], [14528], [15882], [17253], [18629], [20019], [20400], [21396], [22772], [23123], [24164], [25545], [25911], [26904], [29345], [30029], [30702], [31393], [32108], [32792], [33479], [34167], [34892], [35539], [36213], [36913], [37612], [38297], [39005], [39662], [40374], [41104], [41836], [42453], [43120], [43842], [44514], [45227], [45935], [46608], [47272], [48013], [48666], [49349], [50025], [50700], [51460], [52100], [52807], [53528], [54210], [54884], [55552], [56268], [57259], [58702], [60084], [61422], [62784], [64178], [65590], [66889], [67645], [68679], [69365], [70063], [70749], [71404], [72097], [72812], [73516], [74156], [74858], [75567], [76228], [76913], [77611], [78266], [79027], [79710], [80368], [81073], [81763], [82450], [83135], [84516], [87315], [91037], [93788], [96568], [99343], [101398], [102490], [103123], [103845], [104496], [105202], [105868], [106570], [107255], [108017], [108654], [109396], [110066], [110727], [111441], [113470], [114133], [114850], [115545], [116231], [116923], [117625], [118304], [119008], [119692], [120359], [121077], [121763], [123814], [124179], [129360], [129689], [133171], [133845], [134184], [134511], [137187], [137313]
+        ];
+        const notesHard = [
+            [1360], [1548], [1718], [2112], [2276], [2465], [2832], [2987], [3150], [3316], [3656], [3822], [3990], [4170], [4351], [4521], [4870], [5031], [5202], [5575], [5734], [5919], [6071], [6883], [7085], [7272], [7453], [7617], [7794], [7969], [8130], [8306], [8493], [8677], [8852], [9030], [9198], [9366], [9520], [9872], [10035], [10200], [10382], [10550], [10709], [10882], [11046], [11239], [11428], [11618], [11780], [12090], [12452], [12613], [12793], [12958], [13144], [13318], [13508], [13669], [13836], [14031], [14225], [14388], [14559], [14742], [14919], [15343], [15508], [15676], [15890], [16075], [16246], [16450], [16610], [16754], [16949], [17111], [17268], [17599], [17940], [18328], [18667], [19153], [19489], [19744], [19903], [20065], [20418], [20559], [20876], [21060], [21226], [21388], [21749], [21922], [22275], [22449], [22633], [22802], [23113], [23504], [23843], [24174], [24665], [25021], [25189], [25343], [25527], [25701], [25894], [26071], [26404], [26558], [26757], [26928], [27115], [27304], [27485], [27770], [27931], [28145], [28318], [28843], [28998], [29374], [29727], [30026], [30185], [30550], [30721], [30904], [31089], [31253], [31417], [31579], [31750], [32078], [32460], [32803], [32961], [33315], [33627], [33816], [33996], [34160], [34544], [34898], [35216], [35566], [35706], [36074], [36221], [36425], [36595], [36788], [36929], [37114], [37283], [37633], [37962], [38316], [38473], [38878], [39136], [39338], [39526], [39693], [40021], [40390], [40756], [40911], [41079], [41263], [41416], [41791], [41952], [42139], [42300], [42605], [42773], [42972], [43149], [43301], [43475], [43814], [43984], [44347], [44499], [44725], [44890], [45208], [45572], [45914], [46253], [46387], [46585], [46750], [46920], [47284], [47449], [47619], [47808], [48163], [48348], [48540], [48685], [48833], [49026], [49347], [49507], [49868], [50035], [50211], [50416], [50576], [50759], [56964], [57294], [57442], [57619], [57770], [58116], [58443], [58606], [58765], [58949], [59144], [59531], [59700], [59866], [60039], [60195], [60362], [60539], [60726], [60911], [61089], [61246], [61421], [61768], [62107], [62656], [62796], [63288], [63468], [63991], [64140], [64318], [64501], [64658], [65015], [65195], [65346], [65513], [65695], [65844], [65993], [66370], [66552], [66752], [66914], [67240], [67426], [67589], [67995], [68311], [68652], [68808], [69170], [69304], [69506], [69690], [69890], [70065], [70251], [70415], [70727], [71077], [71455], [71616], [71959], [72287], [72437], [72660], [72845], [73180], [73508], [73854], [74185], [74358], [74697], [74867], [75050], [75219], [75402], [75587], [75757], [75937], [76441], [76585], [77122], [77494], [77727], [77913], [78106], [78321], [78837], [78992], [79184], [79377], [79710], [80212], [80370], [80553], [80720], [81077], [81595], [81783], [81952], [82110], [82270], [82447], [82644], [82828], [83005], [83181], [83355], [83518], [83854], [84220], [84542], [84891], [85232], [85388], [86555], [86702], [86909], [87262], [87627], [87981], [88129], [90372], [90894], [91031], [91419], [91739], [92099], [92258], [92641], [92791], [92955], [93126], [93317], [93497], [93683], [93828], [94165], [94513], [94893], [95015], [95391], [95676], [95842], [96012], [96204], [96473], [96633], [96973], [97334], [97620], [97793], [98181], [98335], [98515], [98675], [98839], [98992], [99169], [99340], [99668], [100038], [100381], [100536], [100992], [101186], [101445], [101964], [102099], [102455], [102796], [103152], [103311], [103679], [103843], [104036], [104242], [104407], [104573], [104788], [105143], [105517], [105912], [106066], [106400], [106751], [106937], [107124], [107317], [107632], [108016], [108373], [108666], [108872], [109209], [109358], [109525], [109683], [109897], [110073], [110242], [110398], [110712], [111065], [111416], [111566], [111922], [112231], [112448], [112627], [112804], [113169], [113521], [113794], [113985], [114162], [114317], [114503], [114859], [115025], [115197], [115361], [115675], [115870], [116045], [116237], [116410], [116609], [116930], [117094], [117427], [117600], [117817], [117998], [118323], [118688], [119018], [119360], [119508], [119694], [119865], [120032], [120375], [120559], [120727], [120905], [121240], [121425], [121606], [121783], [121933], [122098], [122425], [122593], [122956], [123121], [123363], [123582], [123854], [124202], [125261], [125603], [125937], [126090], [126285], [127030], [127313], [127643], [127998], [128167], [128485], [128665], [128832], [128992], [129306], [129664], [130047], [130396], [130556], [130718], [130907], [131056], [131215], [131413], [131591], [131739], [132443], [132793], [133101], [133522], [133677], [134019], [134193], [134371], [134551], [134714], [134867], [135178], [135600], [135939], [136086], [136239], [136411], [136749], [136923], [137111], [137281]
+];
+        let notes = notesNormal;
+        let selectedDiff = 'easy';
+
+        const laneX = 200; // Center of canvas
+        const hitLineY = 350;
+        const noteRadius = 30;
+        let startTime = null;
+        let currentNote = 0;
+        let score = 0;
+        let running = false;
+        let animationId = null;
+
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const startBtn = document.getElementById('startBtn');
+        const song = document.getElementById('song');
+        const diffBtns = document.querySelectorAll('.diff-btn');
+        const feedback = document.getElementById('feedback');
+        const bigComboDisplay = document.getElementById('big-combo');
+
+        let feedbackText = "";
+        let feedbackTime = 0;
+        let songOffset = 780; // adjust as needed
+
+        // Health variables
+        let health = 100;
+        const maxHealth = 100;
+        const minHealth = 0;
+        const healthBar = document.getElementById('health-bar');
+        const healthText = document.getElementById('health-text');
+
+        // Fever variables
+        let feverMode = false;
+        let feverStart = 113470; // ms, only for Normal
+        let feverDuration = 8000; // ms, how long fever lasts
+        let feverEndTime = 0;
+
+        // Combo variables
+        let combo = 0;
+        let maxCombo = 0;
+
+        // Difficulty button logic
+        diffBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedDiff = btn.getAttribute('data-diff');
+            });
+        });
+
+        startBtn.addEventListener('click', startGame);
+
+        document.addEventListener('keydown', function(e) {
+            if (!running) return;
+            if (e.code !== "Space") return;
+            checkHit();
+        });
+
+        canvas.addEventListener('mousedown', function(e) {
+            if (!running) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            checkHit(x, y);
+        });
+
+        canvas.addEventListener('touchstart', function(e) {
+            if (!running) return;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            checkHit(x, y);
+        });
+
+        function drawLanes() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#333";
+            ctx.fillRect(laneX - 40, 0, 80, canvas.height);
+            ctx.strokeStyle = "#ffe066";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(60, hitLineY);
+            ctx.lineTo(340, hitLineY);
+            ctx.stroke();
+        }
+
+        function drawNotes(now) {
+            for (let i = currentNote; i < notes.length; i++) {
+                const noteTime = notes[i][0] - songOffset;
+                const timeSinceStart = now - startTime;
+                const noteY = (timeSinceStart - noteTime) * 0.25 + noteRadius;
+
+                // Pop animation state
+                if (notes[i][2] && notes[i][2].popTime) {
+                    const popElapsed = now - notes[i][2].popTime;
+                    if (popElapsed > 250) {
+                        currentNote++;
+                        continue;
+                    }
+                    const scale = 1 + popElapsed / 120;
+                    const alpha = 1 - popElapsed / 250;
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.beginPath();
+                    ctx.arc(laneX, hitLineY, noteRadius * scale, 0, 2 * Math.PI);
+                    ctx.fillStyle = "#ffe066";
+                    ctx.fill();
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    ctx.restore();
+                    continue;
+                }
+
+                // Missed note
+                if (!notes[i][2] && noteY >= hitLineY + noteRadius) {
+                    notes[i][2] = {popTime: now};
+                    showFeedback(9999);
+                    continue;
+                }
+
+                // Off screen
+                if (noteY > canvas.height + noteRadius) {
+                    currentNote++;
+                    continue;
+                }
+
+                // Draw note
+                ctx.beginPath();
+                ctx.arc(laneX, noteY, noteRadius, 0, 2 * Math.PI);
+                if (feverMode) {
+                    // Rainbow gradient for fever
+                    let grad = ctx.createLinearGradient(laneX - noteRadius, noteY, laneX + noteRadius, noteY);
+                    grad.addColorStop(0, "#ff6fcf");
+                    grad.addColorStop(0.33, "#6fcf97");
+                    grad.addColorStop(0.66, "#66b3ff");
+                    grad.addColorStop(1, "#ffe066");
+                    ctx.fillStyle = grad;
+                } else {
+                    ctx.fillStyle = "#6fcf97";
+                }
+                ctx.fill();
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                notes[i][1] = noteY;
+            }
+        }
+
+        function gameLoop(now) {
+            drawLanes();
+            drawNotes(now);
+            if (currentNote >= notes.length || health <= 0) {
+                running = false;
+                startBtn.disabled = false;
+                startBtn.textContent = "Restart";
+                song.pause();
+                song.currentTime = 0;
+                feverMode = false;
+                document.body.style.background = ""; // Reset background
+                if (health <= 0) feedback.textContent = "Game Over!";
+                return;
+            }
+            if (feedbackText && performance.now() - feedbackTime > 700) {
+                feedbackText = "";
+                feedback.textContent = "";
+            }
+
+            // Fever mode activation (only for Normal)
+            if (
+                selectedDiff === 'normal' &&
+                !feverMode &&
+                now - startTime >= feverStart - songOffset
+            ) {
+                feverMode = true;
+                feverEndTime = now + feverDuration;
+                document.body.style.background = "linear-gradient(120deg, #ffe066, #ff6f91, #66b3ff, #6fcf97, #ffe066)";
+                feedback.textContent = "FEVER MODE!";
+                feedback.classList.add('rainbow-text');
+                feedbackTime = performance.now();
+            }
+
+            // Fever mode end
+            if (feverMode && now > feverEndTime) {
+                feverMode = false;
+                document.body.style.background = ""; // revert to default
+            }
+
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            feverMode = false;
+            document.body.style.background = ""; // Reset background
+            if (selectedDiff === 'easy') {
+                notes = notesEasy.map(n => [...n]);
+                songOffset = 800;
+            } else if (selectedDiff === 'hard') {
+                notes = notesHard.map(n => [...n]);
+                songOffset = 780;
+            } else {
+                notes = notesNormal.map(n => [...n]);
+                songOffset = 1900; // Try 400 for Normal, or adjust to 300 if you want it even later
+            }
+            score = 0;
+            scoreDisplay.textContent = "Score: 0";
+            combo = 0;
+            maxCombo = 0;
+            document.getElementById('combo').textContent = "Combo: 0";
+            document.getElementById('big-combo').textContent = "0";
+            startTime = performance.now();
+            currentNote = 0;
+            running = true;
+            startBtn.disabled = true;
+            startBtn.textContent = "Playing...";
+            song.currentTime = 0;
+            health = 100;
+            updateHealthBar();
+            song.play();
+            gameLoop(performance.now());
+        }
+
+        function checkHit(x, y) {
+            for (let i = currentNote; i < notes.length; i++) {
+                const noteY = notes[i][1];
+                if (typeof noteY !== "number") continue;
+                let timing = Math.abs(noteY - hitLineY) / 0.25;
+                // Spacebar
+                if (x === undefined && Math.abs(noteY - hitLineY) < 30) {
+                    let points = feverMode ? 200 : 100;
+                    score += points;
+                    scoreDisplay.textContent = "Score: " + score;
+                    notes[i][2] = {popTime: performance.now()};
+                    showFeedback(timing);
+                    break;
+                }
+                // Mouse/tap
+                if (x !== undefined) {
+                    const dx = x - laneX;
+                    const dy = y - noteY;
+                    if (Math.sqrt(dx*dx + dy*dy) < noteRadius) {
+                        if (Math.abs(noteY - hitLineY) < 30) {
+                            let points = feverMode ? 200 : 100;
+                            score += points;
+                            scoreDisplay.textContent = "Score: " + score;
+                            notes[i][2] = {popTime: performance.now()};
+                            showFeedback(timing);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        function showFeedback(timing) {
+            feedback.classList.remove('rainbow-text');
+            let color = "#ffe066";
+            if (timing < 40) {
+                feedbackText = "Perfect!";
+                feedback.classList.add('rainbow-text');
+                color = "";
+                health = Math.min(maxHealth, health + 3);
+                combo++;
+            } else if (timing < 80) {
+                feedbackText = "Great!";
+                color = "#6fcf97";
+                health = Math.min(maxHealth, health + 2);
+                combo++;
+            } else if (timing < 120) {
+                feedbackText = "Good";
+                color = "#66b3ff";
+                health = Math.min(maxHealth, health + 1);
+                combo = 0;
+            } else if (timing < 180) {
+                feedbackText = "Bad...";
+                color = "#ffb366";
+                combo = 0;
+                // no health change
+            } else {
+                feedbackText = "Miss...";
+                color = "#bbb";
+                health = Math.max(minHealth, health - 10);
+                combo = 0;
+            }
+            if (combo > maxCombo) maxCombo = combo;
+            document.getElementById('combo').textContent = "Combo: " + combo;
+
+            // Always show big combo number
+            const bigCombo = document.getElementById('big-combo');
+            bigCombo.textContent = combo;
+            bigCombo.style.opacity = 1;
+
+            feedbackTime = performance.now();
+            feedback.textContent = feedbackText;
+            updateHealthBar();
+            if (health <= 0) {
+                running = false;
+                startBtn.disabled = false;lor;
+                startBtn.textContent = "Restart";nt = feedbackText;
+                song.pause();
+                song.currentTime = 0;
+                feedback.textContent = "Game Over!";
+            }
+        }ent = feedbackText;
+
+        // Optionally, you can implement showBigCombo if you want a special effect for combos.
+        function updateHealthBar() {
+            healthBar.style.width = health + "%";
+            healthText.textContent = Math.round(health) + "%";
+            if (health > 60) {
+                healthBar.style.background = "#6fcf97";
+            } else if (health > 30) {
+                healthBar.style.background = "#ffe066";
+            } else {
+                healthBar.style.background = "#ff6f91";
+            }
+        }
+        // Initial draw
+        drawLanes();
+    </script>
+</body>
+</html>
